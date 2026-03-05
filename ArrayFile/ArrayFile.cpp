@@ -1,54 +1,46 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <vector>
-#include <windows.h>
 
 using namespace std;
 
-int InputSize(const int maxSize)
+int InputSize()
 {
     int n = 0;
     do
     {
-        cout << "Input size (0 < n < " << maxSize << "): ";
+        cout << "Input size (0 < n < 650): ";
         cin >> n;
-    } while (n <= 0 || n >= maxSize);
+    } while (n <= 0 || n >= 650);
     return n;
 }
 
-bool ReadIntArrayFromFile(const char *fileName, int maxSize, int *&A, int &n)
+bool ReadArrayFromFile(const char *fileName, vector<int> &arr)
 {
     ifstream fin(fileName);
-    if (!fin.is_open())
+    if (!fin)
         return false;
 
+    int n = 0;
     fin >> n;
-    if (!fin || n <= 0 || n >= maxSize)
+    if (!fin || n <= 0 || n >= 650)
         return false;
 
-    A = new int[n];
-    if (A == nullptr)
-        return false;
-
+    arr.assign(n, 0);
     for (int i = 0; i < n; i++)
     {
-        fin >> A[i];
+        fin >> arr[i];
         if (!fin)
-        {
-            delete[] A;
-            A = nullptr;
-            n = 0;
             return false;
-        }
     }
 
     return true;
 }
 
-void WriteIntArrayToFile(const char *fileName, const vector<int> &arr)
+void WriteArrayToFile(const char *fileName, const vector<int> &arr)
 {
     ofstream fout(fileName);
-    if (!fout.is_open())
+    if (!fout)
         return;
 
     fout << arr.size() << '\n';
@@ -56,46 +48,36 @@ void WriteIntArrayToFile(const char *fileName, const vector<int> &arr)
         fout << arr[i] << ' ';
 }
 
-void WriteInputArrayToFile(const char *fileName, const int *A, int n)
+vector<int> InputArray()
 {
-    ofstream fout(fileName);
-    if (!fout.is_open())
-        return;
-
-    fout << n << '\n';
-    for (int i = 0; i < n; i++)
-        fout << A[i] << ' ';
-}
-
-int LoadOrCreateInputArray(const char *inputFile, int maxSize, int *&A)
-{
-    int n = 0;
-    if (ReadIntArrayFromFile(inputFile, maxSize, A, n))
-    {
-        cout << "Read array from " << inputFile << '\n';
-        return n;
-    }
-
-    cout << "File " << inputFile << " not found (or invalid).\n";
-    cout << "Enter array from console.\n";
-
-    n = InputSize(maxSize);
-    A = new int[n];
-    if (A == nullptr)
-        return 0;
-
+    int n = InputSize();
+    vector<int> arr(n);
     for (int i = 0; i < n; i++)
     {
         cout << "A[" << i << "] = ";
-        cin >> A[i];
+        cin >> arr[i];
     }
-
-    WriteInputArrayToFile(inputFile, A, n);
-    cout << "Saved input array to " << inputFile << '\n';
-    return n;
+    return arr;
 }
 
-void PrintVector(const vector<int> &arr, const char *title)
+vector<int> LoadOrCreateInputArray()
+{
+    vector<int> arr;
+    if (ReadArrayFromFile("input.txt", arr))
+    {
+        cout << "Read array from " << "input.txt" << '\n';
+        return arr;
+    }
+
+    cout << "File input.txt not found.\n";
+    cout << "Enter array from console.\n";
+    arr = InputArray();
+    WriteArrayToFile("input.txt", arr);
+    cout << "Saved input array to input.txt\n";
+    return arr;
+}
+
+void PrintArray(const vector<int> &arr, const char *title)
 {
     cout << title << '\n';
     if (arr.empty())
@@ -113,44 +95,36 @@ void PrintVector(const vector<int> &arr, const char *title)
     cout << '\n';
 }
 
-void SolveTask1(int maxSize)
+void SolveTask1()
 {
-    int *A = nullptr;
-    int n = LoadOrCreateInputArray("input.txt", maxSize, A);
-    if (n <= 0)
-        return;
-
+    vector<int> A = LoadOrCreateInputArray();
     vector<int> B;
-    for (int i = 0; i < n; i++)
+
+    for (int x : A)
     {
-        if (A[i] < 0)
-            B.push_back(A[i]);
+        if (x < 0)
+            B.push_back(x);
     }
 
-    PrintVector(B, "Task 1 result (negative elements):");
-    WriteIntArrayToFile("task1_result.txt", B);
+    PrintArray(B, "Task 1 result (negative elements):");
+    WriteArrayToFile("task1_result.txt", B);
     cout << "Saved to task1_result.txt\n";
-
-    delete[] A;
 }
 
-void SolveTask2(int maxSize)
+void SolveTask2()
 {
-    int *A = nullptr;
-    int n = LoadOrCreateInputArray("input.txt", maxSize, A);
-    if (n <= 0)
-        return;
+    vector<int> A = LoadOrCreateInputArray();
 
     int T;
     cout << "Input T: ";
     cin >> T;
 
     int posT = -1;
-    for (int i = 0; i < n; i++)
+    for (size_t i = 0; i < A.size(); i++)
     {
         if (A[i] == T)
         {
-            posT = i;
+            posT = static_cast<int>(i);
             break;
         }
     }
@@ -162,13 +136,10 @@ void SolveTask2(int maxSize)
         int maxNeg = 0;
         for (int i = 0; i < posT; i++)
         {
-            if (A[i] < 0)
+            if (A[i] < 0 && (!found || A[i] > maxNeg))
             {
-                if (!found || A[i] > maxNeg)
-                {
-                    maxNeg = A[i];
-                    found = true;
-                }
+                maxNeg = A[i];
+                found = true;
             }
         }
         if (found)
@@ -176,28 +147,23 @@ void SolveTask2(int maxSize)
     }
 
     if (out.empty())
-        cout << "Task 2: no result (T not found or no negative before first T).\n";
+        cout << "Task 2: no result.\n";
     else
         cout << "Task 2 result: " << out[0] << '\n';
 
-    WriteIntArrayToFile("task2_result.txt", out);
+    WriteArrayToFile("task2_result.txt", out);
     cout << "Saved to task2_result.txt\n";
-
-    delete[] A;
 }
 
-void SolveTask3(int maxSize)
+void SolveTask3()
 {
-    int *A = nullptr;
-    int n = LoadOrCreateInputArray("input.txt", maxSize, A);
-    if (n <= 0)
-        return;
-
+    vector<int> A = LoadOrCreateInputArray();
     vector<int> B;
-    for (int i = 0; i < n; i++)
+
+    for (size_t i = 0; i < A.size(); i++)
     {
         int count = 0;
-        for (int j = 0; j < n; j++)
+        for (size_t j = 0; j < A.size(); j++)
         {
             if (A[j] == A[i])
                 count++;
@@ -206,9 +172,9 @@ void SolveTask3(int maxSize)
         if (count > 1)
         {
             bool exists = false;
-            for (size_t k = 0; k < B.size(); k++)
+            for (int x : B)
             {
-                if (B[k] == A[i])
+                if (x == A[i])
                 {
                     exists = true;
                     break;
@@ -219,33 +185,23 @@ void SolveTask3(int maxSize)
         }
     }
 
-    PrintVector(B, "Task 3 result (unique repeating elements):");
-    WriteIntArrayToFile("task3_result.txt", B);
+    PrintArray(B, "Task 3 result (repeating elements):");
+    WriteArrayToFile("task3_result.txt", B);
     cout << "Saved to task3_result.txt\n";
-
-    delete[] A;
 }
 
 void ShowMainMenu()
 {
-    cout << "=============================\n";
-    cout << "            MENU\n";
-    cout << "=============================\n";
+    cout << "MENU\n";
     cout << "1. Task 1\n";
     cout << "2. Task 2\n";
     cout << "3. Task 3\n";
     cout << "0. Exit\n";
-    cout << "=============================\n";
     cout << "Your choice: ";
 }
 
 int main()
 {
-    SetConsoleCP(CP_UTF8);
-    SetConsoleOutputCP(CP_UTF8);
-
-    const int MAX_SIZE = 560;
-
     while (true)
     {
         ShowMainMenu();
@@ -257,13 +213,13 @@ int main()
         switch (choice)
         {
         case 1:
-            SolveTask1(MAX_SIZE);
+            SolveTask1();
             break;
         case 2:
-            SolveTask2(MAX_SIZE);
+            SolveTask2();
             break;
         case 3:
-            SolveTask3(MAX_SIZE);
+            SolveTask3();
             break;
         case 0:
             return 0;
