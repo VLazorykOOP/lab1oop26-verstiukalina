@@ -113,6 +113,79 @@ void PrintVector(const vector<int> &arr, const char *title)
     cout << '\n';
 }
 
+void SolveTask1(int maxSize)
+{
+    int *A = nullptr;
+    int n = LoadOrCreateInputArray("input.txt", maxSize, A);
+    if (n <= 0)
+        return;
+
+    vector<int> B;
+    for (int i = 0; i < n; i++)
+    {
+        if (A[i] < 0)
+            B.push_back(A[i]);
+    }
+
+    PrintVector(B, "Task 1 result (negative elements):");
+    WriteIntArrayToFile("task1_result.txt", B);
+    cout << "Saved to task1_result.txt\n";
+
+    delete[] A;
+}
+
+void SolveTask2(int maxSize)
+{
+    int *A = nullptr;
+    int n = LoadOrCreateInputArray("input.txt", maxSize, A);
+    if (n <= 0)
+        return;
+
+    int T;
+    cout << "Input T: ";
+    cin >> T;
+
+    int posT = -1;
+    for (int i = 0; i < n; i++)
+    {
+        if (A[i] == T)
+        {
+            posT = i;
+            break;
+        }
+    }
+
+    vector<int> out;
+    if (posT != -1)
+    {
+        bool found = false;
+        int maxNeg = 0;
+        for (int i = 0; i < posT; i++)
+        {
+            if (A[i] < 0)
+            {
+                if (!found || A[i] > maxNeg)
+                {
+                    maxNeg = A[i];
+                    found = true;
+                }
+            }
+        }
+        if (found)
+            out.push_back(maxNeg);
+    }
+
+    if (out.empty())
+        cout << "Task 2: no result (T not found or no negative before first T).\n";
+    else
+        cout << "Task 2 result: " << out[0] << '\n';
+
+    WriteIntArrayToFile("task2_result.txt", out);
+    cout << "Saved to task2_result.txt\n";
+
+    delete[] A;
+}
+
 void ShowMainMenu()
 {
     cout << "=============================\n";
@@ -144,8 +217,10 @@ int main()
         switch (choice)
         {
         case 1:
+            SolveTask1(MAX_SIZE);
             break;
         case 2:
+            SolveTask2(MAX_SIZE);
             break;
         case 3:
             break;
