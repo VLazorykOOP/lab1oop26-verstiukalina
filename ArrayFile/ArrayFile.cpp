@@ -186,6 +186,46 @@ void SolveTask2(int maxSize)
     delete[] A;
 }
 
+void SolveTask3(int maxSize)
+{
+    int *A = nullptr;
+    int n = LoadOrCreateInputArray("input.txt", maxSize, A);
+    if (n <= 0)
+        return;
+
+    vector<int> B;
+    for (int i = 0; i < n; i++)
+    {
+        int count = 0;
+        for (int j = 0; j < n; j++)
+        {
+            if (A[j] == A[i])
+                count++;
+        }
+
+        if (count > 1)
+        {
+            bool exists = false;
+            for (size_t k = 0; k < B.size(); k++)
+            {
+                if (B[k] == A[i])
+                {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists)
+                B.push_back(A[i]);
+        }
+    }
+
+    PrintVector(B, "Task 3 result (unique repeating elements):");
+    WriteIntArrayToFile("task3_result.txt", B);
+    cout << "Saved to task3_result.txt\n";
+
+    delete[] A;
+}
+
 void ShowMainMenu()
 {
     cout << "=============================\n";
@@ -223,6 +263,7 @@ int main()
             SolveTask2(MAX_SIZE);
             break;
         case 3:
+            SolveTask3(MAX_SIZE);
             break;
         case 0:
             return 0;
